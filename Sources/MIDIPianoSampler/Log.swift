@@ -5,10 +5,10 @@
 //  Created by Felföldy Tibor on 2022. 12. 02..
 //
 
-import Foundation
-
-func log(message: @autoclosure () -> String) {
-    #if DEBUG
-    print("🎹 - \(message())")
-    #endif
+enum Log {
+    static func info(_ message: @autoclosure () -> String) {
+        #if DEBUG
+        print("🎹 - \(message())")
+        #endif
+    }
 }
