@@ -34,7 +34,9 @@ public final class MIDIEngine: MIDIService, ObservableObject {
         notificationPublisher
             .filter { $0 == .msgSetupChanged }
             .map { _ in
-                MIDIDevice.allInputDevices
+                let devices = MIDIDevice.allInputDevices
+                Log.info("Midi setup changed:\n\(devices.map(\.name).joined(separator: "\n"))")
+                return devices
             }
             .assign(to: &$inputDevices)
     }
