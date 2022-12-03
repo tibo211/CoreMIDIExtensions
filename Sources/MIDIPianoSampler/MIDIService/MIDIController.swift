@@ -1,5 +1,5 @@
 //
-//  MIDIEngine.swift
+//  MIDIController.swift
 //  
 //
 //  Created by Felföldy Tibor on 2022. 12. 02.
@@ -9,8 +9,8 @@ import Foundation
 import CoreMIDI
 import Combine
 
-public final class MIDIEngine: MIDIService, ObservableObject {
-    public let name = "MIDI Controller Service"
+public final class MIDIController: MIDIService, ObservableObject {
+    public let name = "MIDI Controller"
     private let client: MIDIClientRef
     private let inputPort: MIDIPortRef
 

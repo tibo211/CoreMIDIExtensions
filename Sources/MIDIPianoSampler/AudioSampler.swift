@@ -26,17 +26,15 @@ public final class AudioSampler: AVAudioUnitSampler {
         Log.info("Soundbank loaded")
     }
     
-    deinit {
-        connectedServices.values.forEach { cancellable in
-            cancellable.cancel()
-        }
-    }
-    
     public func attach(_ service: any MIDIService) {
         connectedServices[service.name] = service.output
             .sink { [unowned self] event in
                 play(event: event)
             }
+    }
+    
+    public func deatach(_ service: any MIDIService) {
+        connectedServices[service.name] = nil
     }
     
     func play(event: MIDIEvent) {
