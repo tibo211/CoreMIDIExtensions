@@ -7,38 +7,45 @@
 
 import Foundation
 import CoreMIDI
+import Combine
+
+// MARK: - Client
 
 extension MIDIClientRef {
-    static func create(nofifyChanges: @escaping (MIDINotificationMessageID) -> Void) -> MIDIClientRef {
+    static func create(notificationSubject: PassthroughSubject<MIDINotificationMessageID, Never>) -> MIDIClientRef {
         var client = MIDIClientRef()
 
-        // For some reason this has to be called on the main thread
+        // This has to be called on the main thread
         // otherwise the client notification won't be received.
         MIDIClientCreateWithBlock("MIDIEngineClient" as CFString, &client) { message in
-            nofifyChanges(message.pointee.messageID)
+            notificationSubject.send(message.pointee.messageID)
         }
         return client
     }
 }
 
+// MARK: - Ports
+
 extension MIDIPortRef {
     static func input(from client: MIDIClientRef,
                       transform: @escaping (MIDIEventPacket) -> MIDIEvent,
-                      eventsHandler: @escaping ([MIDIEvent]) -> Void) -> MIDIPortRef {
+                      output eventSubject: PassthroughSubject<MIDIEvent, Never>) -> MIDIPortRef {
         var inputPort = MIDIPortRef()
         MIDIInputPortCreateWithProtocol(client, "MIDIEngineInputPort" as CFString, ._1_0, &inputPort) { eventList, pointer in
-            
             let packetCount = Int(eventList.pointee.numPackets)
-            
-            let events = UnsafeBufferPointer(start: eventList, count: packetCount)
+
+            UnsafeBufferPointer(start: eventList, count: packetCount)
                 .map(\.packet)
                 .map(transform)
-            
-            eventsHandler(events)
+                .forEach { event in
+                    eventSubject.send(event)
+                }
         }
         return inputPort
     }
 }
+
+// MARK: - Objects
 
 extension MIDIObjectRef {
     var properties: [String : Any] {
