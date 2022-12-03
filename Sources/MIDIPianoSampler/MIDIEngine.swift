@@ -30,6 +30,9 @@ public final class MIDIEngine: MIDIService, ObservableObject {
                        output: eventPublisher)
         
         output = eventPublisher
+            .handleEvents(receiveOutput: { event in
+                Log.info("\(event)")
+            })
             .eraseToAnyPublisher()
         
         inputDevices = MIDIDevice.allInputDevices
@@ -49,10 +52,12 @@ public final class MIDIEngine: MIDIService, ObservableObject {
             // Connect device.
             device.connect(port: inputPort)
             selectedInputs.insert(device)
+            Log.info("\(device.name) connected.")
         } else {
             // Disconnect device.
             device.disconnect(port: inputPort)
             selectedInputs.remove(device)
+            Log.info("\(device.name) disconnected.")
         }
     }
 }
