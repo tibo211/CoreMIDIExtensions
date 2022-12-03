@@ -34,8 +34,7 @@ public final class MIDIEngine: MIDIService, ObservableObject {
         notificationPublisher
             .filter { $0 == .msgSetupChanged }
             .map { _ in
-                // TODO: List midi devices.
-                [MIDIDevice]()
+                MIDIDevice.allInputDevices
             }
             .assign(to: &$inputDevices)
     }
