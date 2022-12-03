@@ -41,10 +41,21 @@ public final class AudioSampler: AVAudioUnitSampler {
     
     func play(event: MIDIEvent) {
         Log.info("Sampler received: \(event)")
-        
+
         switch event {
         case let .noteOn(note, velocity):
-            
+            pressedKeys.insert(note)
+            notesPlaying.insert(note)
+            startNote(note, withVelocity: velocity.midi_v1, onChannel: 0)
+        case let .noteOff(note):
+            pressedKeys.remove(note)
+            // Stop the note only if the pedal is released.
+            if !sustained {
+                notesPlaying.remove(note)
+                stopNote(note, onChannel: 0)
+            }
+        case let .sustain(isPressed):
+            sustained = isPressed
         }
     }
 }
