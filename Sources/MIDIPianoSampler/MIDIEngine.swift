@@ -15,7 +15,7 @@ public final class MIDIEngine: MIDIService, ObservableObject {
 
     public let output: AnyPublisher<MIDIEvent, Never>
     
-    @Published private(set) var inputDevices = [MIDIDevice]()
+    @Published public private(set) var inputDevices = [MIDIDevice]()
     
     public init() {
         Log.info("Create midi client")
