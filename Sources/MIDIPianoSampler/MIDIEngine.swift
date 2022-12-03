@@ -11,11 +11,12 @@ import Combine
 
 public final class MIDIEngine: MIDIService, ObservableObject {
     private let client: MIDIClientRef
-    private let input: MIDIPortRef
+    private let inputPort: MIDIPortRef
 
     public let output: AnyPublisher<MIDIEvent, Never>
     
     @Published public private(set) var inputDevices: [MIDIDevice]
+    @Published public private(set) var selectedInputs = Set<MIDIDevice>()
     
     public init() {
         Log.info("Create midi client")
@@ -24,7 +25,7 @@ public final class MIDIEngine: MIDIService, ObservableObject {
 
         client = .create(notificationSubject: notificationPublisher)
         
-        input = .input(from: client,
+        inputPort = .input(from: client,
                        transform: { _ in .sustain(false) },
                        output: eventPublisher)
         
@@ -41,5 +42,17 @@ public final class MIDIEngine: MIDIService, ObservableObject {
                 return devices
             }
             .assign(to: &$inputDevices)
+    }
+    
+    public func set(device: MIDIDevice) {
+        if !selectedInputs.contains(device) {
+            // Connect device.
+            device.connect(port: inputPort)
+            selectedInputs.insert(device)
+        } else {
+            // Disconnect device.
+            device.disconnect(port: inputPort)
+            selectedInputs.remove(device)
+        }
     }
 }

@@ -9,9 +9,11 @@ import CoreMIDI
 
 public struct MIDIEndpoint: Identifiable {
     public let id: Int
+    fileprivate let ref: MIDIEndpointRef
     
     init(_ endpoint: MIDIEndpointRef) {
         id = endpoint.id
+        ref = endpoint
     }
 }
 
@@ -38,6 +40,18 @@ public struct MIDIDevice: Identifiable {
                 .map(MIDIEndpoint.init)
         }()
     }
+    
+    func connect(port: MIDIPortRef) {
+        inputs.map(\.ref).forEach { ref in
+            MIDIPortConnectSource(port, ref, nil)
+        }
+    }
+    
+    func disconnect(port: MIDIPortRef) {
+        inputs.map(\.ref).forEach { ref in
+            MIDIPortDisconnectSource(port, ref)
+        }
+    }
 }
 
 extension MIDIDevice {
@@ -47,5 +61,15 @@ extension MIDIDevice {
             .map(MIDIGetDevice)
             .map(MIDIDevice.init)
             .filter { !$0.inputs.isEmpty }
+    }
+}
+
+extension MIDIDevice: Hashable {
+    public static func == (lhs: MIDIDevice, rhs: MIDIDevice) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
