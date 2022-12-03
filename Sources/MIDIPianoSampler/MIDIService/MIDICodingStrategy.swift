@@ -62,6 +62,10 @@ struct MIDICoding_v1: MIDICodingStrategy {
             default:
                 break
             }
+            // TODO: Remove this workaround probably an issue with the keyboard itself.
+            if data == 0 {
+                return MIDIEvent.sustain(velocity >= 0.5)
+            }
         default:
             break
         }
