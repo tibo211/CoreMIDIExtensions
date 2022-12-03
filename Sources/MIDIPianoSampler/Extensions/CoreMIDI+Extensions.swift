@@ -28,7 +28,6 @@ extension MIDIClientRef {
 
 extension MIDIPortRef {
     static func input(from client: MIDIClientRef,
-                      transform: @escaping (MIDIEventPacket) -> MIDIEvent,
                       output eventSubject: PassthroughSubject<MIDIEvent, Never>) -> MIDIPortRef {
         var inputPort = MIDIPortRef()
         MIDIInputPortCreateWithProtocol(client, "MIDIEngineInputPort" as CFString, ._1_0, &inputPort) { eventList, pointer in
@@ -38,9 +37,8 @@ extension MIDIPortRef {
             
             UnsafeBufferPointer(start: eventList, count: packetCount)
                 .map(\.packet)
-                .map(transform)
                 .forEach { event in
-                    eventSubject.send(event)
+                    eventSubject.send(.sustain(false))
                 }
         }
         return inputPort

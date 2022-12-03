@@ -26,8 +26,7 @@ public final class MIDIEngine: MIDIService, ObservableObject {
         client = .create(notificationSubject: notificationPublisher)
         
         inputPort = .input(from: client,
-                       transform: { _ in .sustain(false) },
-                       output: eventPublisher)
+                           output: eventPublisher)
         
         output = eventPublisher
             .handleEvents(receiveOutput: { event in
