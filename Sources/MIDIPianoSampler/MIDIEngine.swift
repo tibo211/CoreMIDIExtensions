@@ -10,17 +10,17 @@ import CoreMIDI
 
 public final class MIDIEngine {
     private let client: MIDIClientRef
+    private let input: MIDIPortRef
     
     init() {
         Log.info("Create midi client")
-        var client = MIDIClientRef()
-
-        // For some reason this has to be called on the main thread
-        // otherwise the client notification won't be called.
-        MIDIClientCreateWithBlock("MIDIEngineClient" as CFString, &client) { message in
-            // TODO: Refresh input ports.
+        
+        client = .create { notification in
+            
         }
         
-        self.client = client
+        input = .input(from: client, transform: { _ in .sustain(false) }) { events in
+            
+        }
     }
 }
