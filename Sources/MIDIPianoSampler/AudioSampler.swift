@@ -57,6 +57,13 @@ public final class AudioSampler {
             }
         case let .sustain(isPressed):
             sustained = isPressed
+            if !sustained {
+                let notesToStop = notesPlaying.subtracting(pressedKeys)
+                for note in notesToStop {
+                    node.stopNote(note, onChannel: 0)
+                }
+                notesPlaying = pressedKeys
+            }
         }
     }
 }
