@@ -8,7 +8,9 @@
 import AVFoundation
 import Combine
 
-public final class AudioSampler: AVAudioUnitSampler {
+public final class AudioSampler {
+    public let node: AVAudioUnitSampler
+    
     private var connectedServices = [String: AnyCancellable]()
     
     private var notesPlaying = Set<Note>()
@@ -17,12 +19,13 @@ public final class AudioSampler: AVAudioUnitSampler {
     private var sustained = false
     
     public init(soundbank: URL) throws {
-        super.init()
         Log.info("Load soundbank...")
-        try loadSoundBankInstrument(at: soundbank,
-                                    program: 0,
-                                    bankMSB: UInt8(kAUSampler_DefaultMelodicBankMSB),
-                                    bankLSB: UInt8(kAUSampler_DefaultBankLSB))
+        node = AVAudioUnitSampler()
+        
+        try node.loadSoundBankInstrument(at: soundbank,
+                                         program: 0,
+                                         bankMSB: UInt8(kAUSampler_DefaultMelodicBankMSB),
+                                         bankLSB: UInt8(kAUSampler_DefaultBankLSB))
         Log.info("Soundbank loaded")
     }
     
@@ -44,13 +47,13 @@ public final class AudioSampler: AVAudioUnitSampler {
         case let .noteOn(note, velocity):
             pressedKeys.insert(note)
             notesPlaying.insert(note)
-            startNote(note, withVelocity: velocity.midi_v1, onChannel: 0)
+            node.startNote(note, withVelocity: velocity.midi_v1, onChannel: 0)
         case let .noteOff(note):
             pressedKeys.remove(note)
             // Stop the note only if the pedal is released.
             if !sustained {
                 notesPlaying.remove(note)
-                stopNote(note, onChannel: 0)
+                node.stopNote(note, onChannel: 0)
             }
         case let .sustain(isPressed):
             sustained = isPressed
