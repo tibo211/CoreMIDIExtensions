@@ -10,6 +10,7 @@ import CoreMIDI
 import Combine
 
 public final class MIDIEngine: MIDIService, ObservableObject {
+    public let name = "MIDI Controller Service"
     private let client: MIDIClientRef
     private let inputPort: MIDIPortRef
 
