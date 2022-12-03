@@ -12,9 +12,15 @@ enum Log {
         #endif
     }
     
-    static func error(_ message: @autoclosure () -> String) {
+    static func warning(_ message: @autoclosure () -> String) {
         #if DEBUG
         print("⚠️ - \(message())")
+        #endif
+    }
+    
+    static func error(_ message: @autoclosure () -> String) {
+        #if DEBUG
+        print("❗️ - \(message())")
         #endif
     }
 }

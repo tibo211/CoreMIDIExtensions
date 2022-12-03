@@ -19,7 +19,9 @@ public final class MIDIEngine: MIDIService, ObservableObject {
     @Published public private(set) var inputDevices: [MIDIDevice]
     @Published public private(set) var selectedInputs = Set<MIDIDevice>()
     
-    public init() {
+    public init(decoder: MIDICodingStrategy? = nil) {
+        let decoder = decoder ?? MIDICoding_v1()
+        
         Log.info("Create midi client")
         let notificationPublisher = PassthroughSubject<MIDINotificationMessageID, Never>()
         let eventPublisher = PassthroughSubject<MIDIEvent, Never>()
@@ -27,12 +29,10 @@ public final class MIDIEngine: MIDIService, ObservableObject {
         client = .create(notificationSubject: notificationPublisher)
         
         inputPort = .input(from: client,
+                           coder: decoder,
                            output: eventPublisher)
         
         output = eventPublisher
-            .handleEvents(receiveOutput: { event in
-                Log.info("\(event)")
-            })
             .eraseToAnyPublisher()
         
         inputDevices = MIDIDevice.allInputDevices

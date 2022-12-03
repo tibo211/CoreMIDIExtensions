@@ -28,17 +28,21 @@ extension MIDIClientRef {
 
 extension MIDIPortRef {
     static func input(from client: MIDIClientRef,
+                      coder: MIDICodingStrategy,
                       output eventSubject: PassthroughSubject<MIDIEvent, Never>) -> MIDIPortRef {
         var inputPort = MIDIPortRef()
-        MIDIInputPortCreateWithProtocol(client, "MIDIEngineInputPort" as CFString, ._1_0, &inputPort) { eventList, pointer in
+        MIDIInputPortCreateWithProtocol(client, "MIDIEngineInputPort" as CFString,
+                                        coder.verion,
+                                        &inputPort) { eventList, pointer in
             let packetCount = Int(eventList.pointee.numPackets)
 
             Log.info("\(packetCount) UME received.")
             
             UnsafeBufferPointer(start: eventList, count: packetCount)
                 .map(\.packet)
+                .compactMap(coder.decode)
                 .forEach { event in
-                    eventSubject.send(.sustain(false))
+                    eventSubject.send(event)
                 }
         }
         return inputPort
