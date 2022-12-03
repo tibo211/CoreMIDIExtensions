@@ -43,13 +43,19 @@ public struct MIDIDevice: Identifiable {
     
     func connect(port: MIDIPortRef) {
         inputs.map(\.ref).forEach { ref in
-            MIDIPortConnectSource(port, ref, nil)
+            let status = MIDIPortConnectSource(port, ref, nil)
+            if status != 0 {
+                Log.error("Failed to connect source \(name) with error code:\(status)")
+            }
         }
     }
     
     func disconnect(port: MIDIPortRef) {
         inputs.map(\.ref).forEach { ref in
-            MIDIPortDisconnectSource(port, ref)
+            let status = MIDIPortDisconnectSource(port, ref)
+            if status != 0 {
+                Log.error("Failed to disconnect source \(name) with error code:\(status)")
+            }
         }
     }
 }

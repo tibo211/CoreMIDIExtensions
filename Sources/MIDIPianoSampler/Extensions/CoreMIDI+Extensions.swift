@@ -34,6 +34,8 @@ extension MIDIPortRef {
         MIDIInputPortCreateWithProtocol(client, "MIDIEngineInputPort" as CFString, ._1_0, &inputPort) { eventList, pointer in
             let packetCount = Int(eventList.pointee.numPackets)
 
+            Log.info("\(packetCount) UME received.")
+            
             UnsafeBufferPointer(start: eventList, count: packetCount)
                 .map(\.packet)
                 .map(transform)
