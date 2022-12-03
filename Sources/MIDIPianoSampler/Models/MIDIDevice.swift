@@ -26,10 +26,10 @@ public struct MIDIDevice: Identifiable {
         
         inputs = {
             // Extract source IDs from device properties.
-            let deviceSources = (device.properties["entities"] as? [[String: Any]])?
+            let deviceSources = (device.properties["entities"] as? [[String: Any]] ?? [])
                 .compactMap { $0["sources"] as? [[String: Any]] }
                 .flatMap { $0 }
-                .compactMap { $0["uniqueID"] as? Int } ?? []
+                .compactMap { $0["uniqueID"] as? Int }
             
             // Find sources associated with the device.
             return (0 ..< MIDIGetNumberOfSources())

@@ -17,7 +17,7 @@ public final class MIDIEngine: MIDIService, ObservableObject {
     
     @Published private(set) var inputDevices = [MIDIDevice]()
     
-    init() {
+    public init() {
         Log.info("Create midi client")
         let notificationPublisher = PassthroughSubject<MIDINotificationMessageID, Never>()
         let eventPublisher = PassthroughSubject<MIDIEvent, Never>()
