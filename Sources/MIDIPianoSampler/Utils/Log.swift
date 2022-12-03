@@ -2,7 +2,7 @@
 //  Log.swift
 //  
 //
-//  Created by Felföldy Tibor on 2022. 12. 02..
+//  Created by Felföldy Tibor on 2022. 12. 02.
 //
 
 enum Log {

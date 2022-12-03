@@ -2,7 +2,7 @@
 //  CoreMIDI+Extensions.swift
 //  
 //
-//  Created by Felföldy Tibor on 2022. 12. 02..
+//  Created by Felföldy Tibor on 2022. 12. 02.
 //
 
 import Foundation
@@ -35,8 +35,6 @@ extension MIDIPortRef {
                                         coder.verion,
                                         &inputPort) { eventList, pointer in
             let packetCount = Int(eventList.pointee.numPackets)
-
-            Log.info("\(packetCount) UME received.")
             
             UnsafeBufferPointer(start: eventList, count: packetCount)
                 .map(\.packet)

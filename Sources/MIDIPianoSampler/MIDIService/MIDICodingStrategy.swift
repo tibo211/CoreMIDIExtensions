@@ -2,7 +2,7 @@
 //  MIDICodingStrategy.swift
 //  
 //
-//  Created by Felföldy Tibor on 2022. 12. 03..
+//  Created by Felföldy Tibor on 2022. 12. 03.
 //
 
 import CoreMIDI

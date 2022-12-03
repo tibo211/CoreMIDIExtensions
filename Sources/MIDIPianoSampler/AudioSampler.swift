@@ -8,12 +8,23 @@
 import AVFoundation
 import Combine
 
-public final class AudioSampler {
-    static let sampler = AVAudioUnitSampler()
-    
+public final class AudioSampler: AVAudioUnitSampler {
     private var connectedServices = [String: AnyCancellable]()
     
-    public init() {}
+    private var notesPlaying = Set<Note>()
+    private var pressedKeys = Set<Note>()
+    
+    private var sustained = false
+    
+    public init(soundbank: URL) throws {
+        super.init()
+        Log.info("Load soundbank...")
+        try loadSoundBankInstrument(at: soundbank,
+                                    program: 0,
+                                    bankMSB: UInt8(kAUSampler_DefaultMelodicBankMSB),
+                                    bankLSB: UInt8(kAUSampler_DefaultBankLSB))
+        Log.info("Soundbank loaded")
+    }
     
     deinit {
         connectedServices.values.forEach { cancellable in
@@ -21,14 +32,19 @@ public final class AudioSampler {
         }
     }
     
-    func play(event: MIDIEvent) {
-        Log.info("Sampler received: \(event)")
-    }
-    
     public func attach(_ service: any MIDIService) {
         connectedServices[service.name] = service.output
             .sink { [unowned self] event in
                 play(event: event)
             }
+    }
+    
+    func play(event: MIDIEvent) {
+        Log.info("Sampler received: \(event)")
+        
+        switch event {
+        case let .noteOn(note, velocity):
+            
+        }
     }
 }
