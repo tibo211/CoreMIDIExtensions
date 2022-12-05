@@ -26,10 +26,12 @@ public protocol MIDICodingStrategy {
     func decode(event: MIDIEventPacket) -> MIDIEvent?
 }
 
-struct MIDICoding_v1: MIDICodingStrategy {
-    let verion = MIDIProtocolID._1_0
+// MARK: - Default MIDI codings
+
+public struct MIDICoding_v1: MIDICodingStrategy {
+    public let verion = MIDIProtocolID._1_0
     
-    func decode(event: MIDIEventPacket) -> MIDIEvent? {
+    public func decode(event: MIDIEventPacket) -> MIDIEvent? {
         let word = event.words.0
 
         // MIDI 1.0 Channel Voice Messages
@@ -62,10 +64,6 @@ struct MIDICoding_v1: MIDICodingStrategy {
             default:
                 break
             }
-            // TODO: Remove this workaround probably an issue with the keyboard itself.
-            if data == 0 {
-                return MIDIEvent.sustain(velocity >= 0.5)
-            }
         default:
             break
         }
@@ -73,5 +71,43 @@ struct MIDICoding_v1: MIDICodingStrategy {
         Log.warning("Unhandled midi input (opcode: \(String(binary: opcode, size: 4)), data: \(String(binary: word & 0xFFFF, size: 16))")
         
         return nil
+    }
+}
+
+public struct MIDICodingFallbackComposition: MIDICodingStrategy {
+    let original: MIDICodingStrategy
+    let fallback: MIDICodingStrategy
+    
+    public var verion: MIDIProtocolID
+    
+    init(original: MIDICodingStrategy, fallback: MIDICodingStrategy) {
+        self.original = original
+        self.fallback = fallback
+        verion = original.verion
+    }
+    
+    public func decode(event: MIDIEventPacket) -> MIDIEvent? {
+        if let event = original.decode(event: event) {
+            return event
+        }
+        return fallback.decode(event: event)
+    }
+}
+
+// MARK: - Extensions
+
+public extension MIDICodingStrategy where Self == MIDICoding_v1 {
+    /// Default MIDI V1.0 implementation handles just pedal inputs and note on off messages.
+    static var default_v1: Self {
+        Self()
+    }
+}
+
+public extension MIDICodingStrategy where Self == MIDICodingFallbackComposition {
+    /// Fallback unhandled MIDI events with an other MIDI decoders.
+    /// - Parameter other: MIDICodingStrategy
+    /// - Returns: MIDICodingFallbackComposition
+    func fallback(_ other: MIDICodingStrategy) -> Self {
+        MIDICodingFallbackComposition(original: self, fallback: other)
     }
 }

@@ -19,9 +19,7 @@ public final class MIDIController: MIDIService, ObservableObject {
     @Published public private(set) var inputDevices: [MIDIDevice]
     @Published public private(set) var selectedInputs = Set<MIDIDevice>()
     
-    public init(decoder: MIDICodingStrategy? = nil) {
-        let decoder = decoder ?? MIDICoding_v1()
-        
+    public init(decoder: MIDICodingStrategy = .default_v1) {        
         Log.info("Create midi client")
         let notificationPublisher = PassthroughSubject<MIDINotificationMessageID, Never>()
         let eventPublisher = PassthroughSubject<MIDIEvent, Never>()
