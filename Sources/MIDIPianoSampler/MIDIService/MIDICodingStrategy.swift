@@ -103,11 +103,11 @@ public extension MIDICodingStrategy where Self == MIDICoding_v1 {
     }
 }
 
-public extension MIDICodingStrategy where Self == MIDICodingFallbackComposition {
+public extension MIDICodingStrategy {
     /// Fallback unhandled MIDI events with an other MIDI decoders.
     /// - Parameter other: MIDICodingStrategy
     /// - Returns: MIDICodingFallbackComposition
-    func fallback(_ other: MIDICodingStrategy) -> Self {
+    func fallback(_ other: MIDICodingStrategy) -> MIDICodingFallbackComposition {
         MIDICodingFallbackComposition(original: self, fallback: other)
     }
 }
