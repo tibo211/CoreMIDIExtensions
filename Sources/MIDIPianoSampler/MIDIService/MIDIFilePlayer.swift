@@ -26,7 +26,7 @@ public final class MIDIFilePlayer: MIDIService {
     private var eventIndex = 0
     private let playEventSubject = PassthroughSubject<MIDIEvent, Never>()
     
-    init(file: URL) throws {
+    public init(file: URL) throws {
         let file = try MIDIFile(midiFile: file)
         self.file = file
         
