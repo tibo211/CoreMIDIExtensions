@@ -5,7 +5,7 @@
 //  Created by Felföldy Tibor on 2022. 12. 02.
 //
 
-import Foundation
+import MIDIKit
 
 public typealias Velocity = Float
 
@@ -21,5 +21,9 @@ extension Velocity {
     
     var midi_v1: UInt8 {
         UInt8(self * 127)
+    }
+    
+    static func midiKit(_ velocity: MIDIKit.MIDIEvent.NoteVelocity) -> Velocity {
+        .midi_v1(velocity.midi1Value.uInt8Value)
     }
 }
