@@ -1,16 +1,18 @@
 //
 //  MIDISequence.swift
-//  
+//
 //
 //  Created by Tibor Felföldy on 2024-03-09.
 //
 
 import MIDIKitSMF
+import Foundation
 
 public struct MIDISequence {
     public struct SequenceEvent {
         public enum Event {
             case midi(MIDIEvent)
+            case end
         }
         
         public let ticks: UInt32
@@ -22,12 +24,33 @@ public struct MIDISequence {
         }
     }
     
+    public let ticksPerQuarterNote: UInt16
     public var sequence: [SequenceEvent]
 }
 
+extension MIDISequence {
+    public enum Error: LocalizedError {
+        case unsupportedTimeBase
+        
+        public var errorDescription: String? {
+            switch self {
+            case .unsupportedTimeBase:
+                "SMPTE Timecode is not supported"
+            }
+        }
+    }
+}
+
 public extension MIDISequence {
-    static func load(from file: MIDIFile) -> MIDISequence {
+    static func load(from file: MIDIFile) throws -> MIDISequence {
         let events = file.tracks.flatMap(\.events)
+        
+        let ticksPerQuarterNote = switch file.timeBase {
+        case .timecode:
+            throw Error.unsupportedTimeBase
+        case let .musical(ticksPerQuarterNote):
+            ticksPerQuarterNote
+        }
         
         var absoluteTicks: UInt32 = 0
         
@@ -81,7 +104,15 @@ public extension MIDISequence {
                 break
             }
         }
+        
+        sequence.append(
+            SequenceEvent(ticks: absoluteTicks,
+                          event: .end)
+        )
 
-        return MIDISequence(sequence: sequence)
+        return MIDISequence(
+            ticksPerQuarterNote: ticksPerQuarterNote,
+            sequence: sequence
+        )
     }
 }

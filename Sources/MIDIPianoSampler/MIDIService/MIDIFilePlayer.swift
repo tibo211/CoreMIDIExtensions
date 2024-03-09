@@ -14,6 +14,7 @@ struct TimedMIDIEvent {
     let event: MIDIEvent
 }
 
+@available(*, deprecated, renamed: "MIDISequencePlayer", message: "Use MIDISequencePlayer instead.")
 public final class MIDIFilePlayer: MIDIService {
     public let name = "MIDI File Player"
     public let output: AnyPublisher<MIDIEvent, Never>
