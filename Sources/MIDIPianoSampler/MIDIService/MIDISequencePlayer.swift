@@ -13,6 +13,8 @@ public final class MIDISequencePlayer: MIDIService {
     public let name = "MIDI Sequence Player"
     public let output: AnyPublisher<MIDIEvent, Never>
     public private(set) var isPlaying = false
+    
+    public let beatPublisher = PassthroughSubject<Void, Never>()
 
     public var tempo: Double = 60 {
         didSet { setTimer() }
@@ -71,6 +73,8 @@ public final class MIDISequencePlayer: MIDIService {
             switch event {
             case let .midi(midiEvent):
                 playEventSubject.send(midiEvent)
+            case .beat:
+                beatPublisher.send()
             case .end:
                 stop()
                 return

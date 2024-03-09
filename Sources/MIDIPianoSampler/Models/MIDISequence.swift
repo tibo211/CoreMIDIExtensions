@@ -12,6 +12,7 @@ public struct MIDISequence {
     public struct SequenceEvent {
         public enum Event {
             case midi(MIDIEvent)
+            case beat
             case end
         }
         
@@ -104,6 +105,19 @@ public extension MIDISequence {
                 break
             }
         }
+        
+        var nextbeatTick: UInt16 = 0
+        while nextbeatTick < absoluteTicks {
+            sequence.append(
+                SequenceEvent(ticks: UInt32(nextbeatTick),
+                              event: .beat)
+            )
+            
+            nextbeatTick += ticksPerQuarterNote
+        }
+        
+        sequence = sequence
+            .sorted(by: { $0.ticks < $1.ticks })
         
         sequence.append(
             SequenceEvent(ticks: absoluteTicks,
