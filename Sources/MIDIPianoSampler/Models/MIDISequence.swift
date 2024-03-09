@@ -106,14 +106,14 @@ public extension MIDISequence {
             }
         }
         
-        var nextbeatTick: UInt16 = 0
+        var nextbeatTick: UInt32 = 0
         while nextbeatTick < absoluteTicks {
             sequence.append(
-                SequenceEvent(ticks: UInt32(nextbeatTick),
+                SequenceEvent(ticks: nextbeatTick,
                               event: .beat)
             )
             
-            nextbeatTick += ticksPerQuarterNote
+            nextbeatTick += UInt32(ticksPerQuarterNote)
         }
         
         sequence = sequence
