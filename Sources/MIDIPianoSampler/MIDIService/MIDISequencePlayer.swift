@@ -23,7 +23,7 @@ public final class MIDISequencePlayer: MIDIService {
     private var midiSequence: MIDISequence
     private var eventIndex = 0
     private var currentTimeInTicks: UInt32 = 0
-    private var timer: Timer?
+    private var timer: DispatchSourceTimer?
     private let playEventSubject = PassthroughSubject<MIDIEvent, Never>()
 
     public init(url: URL) throws {
@@ -47,23 +47,27 @@ public final class MIDISequencePlayer: MIDIService {
     }
 
     public func stop() {
-        timer?.invalidate()
+        timer?.cancel()
         timer = nil
         eventIndex = 0
         currentTimeInTicks = 0
     }
     
     private func setTimer() {
-        timer?.invalidate()
+        timer?.cancel()
         
         let tickInterval = 60.0 / (tempo * Double(midiSequence.ticksPerQuarterNote))
         
-        timer = Timer.scheduledTimer(
-            timeInterval: tickInterval,
-            target: self, selector: #selector(processEvents),
-            userInfo: nil,
-            repeats: true
-        )
+        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
+        timer.schedule(deadline: .now(), repeating: tickInterval, leeway: .milliseconds(1))
+        timer.setEventHandler { [unowned self] in
+            DispatchQueue.main.async {
+                self.processEvents()
+            }
+        }
+        timer.resume()
+        
+        self.timer = timer
     }
 
     @objc private func processEvents() {
