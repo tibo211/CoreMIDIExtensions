@@ -12,9 +12,11 @@ import MIDIKitSMF
 public final class MIDISequencePlayer: MIDIService {
     public let name = "MIDI Sequence Player"
     public let output: AnyPublisher<MIDIEvent, Never>
-    public private(set) var isPlaying = false
-    
     public let beatPublisher = PassthroughSubject<Void, Never>()
+    
+    public var isPlaying: Bool {
+        startTime != nil
+    }
 
     public var tempo: Double = 60 {
         didSet { setTimer() }
@@ -24,7 +26,9 @@ public final class MIDISequencePlayer: MIDIService {
     private var eventIndex = 0
     private var currentTimeInTicks: UInt32 = 0
     private var timer: DispatchSourceTimer?
+    private var startTime: Date?
     private let playEventSubject = PassthroughSubject<MIDIEvent, Never>()
+    private let queue = DispatchQueue(label: "com.MIDISequencePlayer.queue", qos: .userInteractive)
 
     public init(url: URL) throws {
         let file = try MIDIFile(midiFile: url)
@@ -38,15 +42,15 @@ public final class MIDISequencePlayer: MIDIService {
     }
 
     public func start() {
-        guard eventIndex < midiSequence.sequence.count else {
-            isPlaying = false
-            return
-        }
-        isPlaying = true
+        let ticksPerSecond = (tempo / 60) * Double(midiSequence.ticksPerQuarterNote)
+        let elapsedTimeInSeconds = Double(currentTimeInTicks) / ticksPerSecond
+        startTime = Date().addingTimeInterval(-elapsedTimeInSeconds)
+        
         setTimer()
     }
 
     public func stop() {
+        startTime = nil
         timer?.cancel()
         timer = nil
         eventIndex = 0
@@ -56,16 +60,14 @@ public final class MIDISequencePlayer: MIDIService {
     private func setTimer() {
         timer?.cancel()
         
-        guard isPlaying else { return }
+        guard startTime != nil else { return }
         
         let tickInterval = 60.0 / (tempo * Double(midiSequence.ticksPerQuarterNote))
         
         let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
-        timer.schedule(deadline: .now(), repeating: tickInterval, leeway: .milliseconds(1))
+        timer.schedule(deadline: .now(), repeating: tickInterval)
         timer.setEventHandler { [unowned self] in
-            DispatchQueue.main.async {
-                self.processEvents()
-            }
+            processEvents()
         }
         timer.resume()
         
@@ -73,17 +75,27 @@ public final class MIDISequencePlayer: MIDIService {
     }
 
     @objc private func processEvents() {
-        while midiSequence.sequence[eventIndex].ticks <= currentTimeInTicks {
+        guard let startTime else { return }
+
+        // Update currentTimeInTicks based on physical time.
+        let elapsedTime = Date().timeIntervalSince(startTime)
+        let ticksPerSecond = (tempo / 60) * Double(midiSequence.ticksPerQuarterNote)
+        currentTimeInTicks = UInt32(elapsedTime * ticksPerSecond)
+        
+        while eventIndex < midiSequence.sequence.count &&
+              midiSequence.sequence[eventIndex].ticks <= currentTimeInTicks {
             let event = midiSequence.sequence[eventIndex].event
             
-            switch event {
-            case let .midi(midiEvent):
-                playEventSubject.send(midiEvent)
-            case .beat:
-                beatPublisher.send()
-            case .end:
-                stop()
-                return
+            DispatchQueue.main.async { [self] in
+                switch event {
+                case let .midi(midiEvent):
+                    playEventSubject.send(midiEvent)
+                case .beat:
+                    beatPublisher.send()
+                case .end:
+                    stop()
+                    return
+                }
             }
             
             eventIndex += 1
