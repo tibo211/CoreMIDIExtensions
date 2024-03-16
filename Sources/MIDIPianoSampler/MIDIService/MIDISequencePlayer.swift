@@ -42,7 +42,7 @@ public final class MIDISequencePlayer: MIDIService {
             isPlaying = false
             return
         }
-        
+        isPlaying = true
         setTimer()
     }
 
@@ -55,6 +55,8 @@ public final class MIDISequencePlayer: MIDIService {
     
     private func setTimer() {
         timer?.cancel()
+        
+        guard isPlaying else { return }
         
         let tickInterval = 60.0 / (tempo * Double(midiSequence.ticksPerQuarterNote))
         
